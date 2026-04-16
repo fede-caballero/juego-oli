@@ -25,15 +25,7 @@ dist-ssr
 
 # Secrets and credentials
 scripts/
-*.json
-!package.json
-!package-lock.json
-!manifest.webmanifest
-!tsconfig.json
+juego_Oli/
 *.pem
 *.key
 .env*
-scripts/
-*.json
-!package.json
-!manifest.webmanifest
