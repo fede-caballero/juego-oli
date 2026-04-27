@@ -26,28 +26,7 @@ const GameCanvas = () => {
         }
     }, [score, checkUnlocks]);
 
-    if (section === 'menu') {
-        return (
-            <>
-                <RewardPopup mascot={newlyUnlocked} onDismiss={dismissUnlock} />
-                <MainMenu />
-            </>
-        );
-    }
-
-    if (section === 'collection') {
-        return <CollectionScreen />;
-    }
-
-    if (section === 'numbers') {
-        return (
-            <>
-                <RewardPopup mascot={newlyUnlocked} onDismiss={dismissUnlock} />
-                <NumberGame />
-            </>
-        );
-    }
-
+    // Hooks for Syllable/Alphabet/Word games (must be before early returns)
     const { currentSyllable, options, feedback, checkAnswer } = useGameLogic();
     const [selectedOption, setSelectedOption] = useState(null);
     const { transcript, listening, resetTranscript, browserSupportsSpeechRecognition } = useSpeechRecognition();
@@ -85,6 +64,28 @@ const GameCanvas = () => {
             return () => clearTimeout(timer);
         }
     }, [section, currentLevel, score, nextLevel]);
+
+    if (section === 'menu') {
+        return (
+            <>
+                <RewardPopup mascot={newlyUnlocked} onDismiss={dismissUnlock} />
+                <MainMenu />
+            </>
+        );
+    }
+
+    if (section === 'collection') {
+        return <CollectionScreen />;
+    }
+
+    if (section === 'numbers') {
+        return (
+            <>
+                <RewardPopup mascot={newlyUnlocked} onDismiss={dismissUnlock} />
+                <NumberGame />
+            </>
+        );
+    }
 
     const handleCardClick = (syllable) => {
         if (gameMode === 'listening') {
