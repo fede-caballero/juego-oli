@@ -1,7 +1,7 @@
 // API service for communicating with the backend
 // Falls back gracefully to localStorage if backend is unreachable
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://147.93.130.237:3456';
+const API_URL = import.meta.env.VITE_API_URL || 'https://147.93.130.237.nip.io';
 
 const TOKEN_KEY = 'silaba_magica_token';
 const USER_KEY = 'silaba_magica_user';
