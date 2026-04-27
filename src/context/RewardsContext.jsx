@@ -32,6 +32,7 @@ export const RewardsProvider = ({ children, userId, onLogout }) => {
     const [stats, setStats] = useState(loadFromStorage);
     const [newlyUnlocked, setNewlyUnlocked] = useState(null); // mascot object or null
     const [newRainbow, setNewRainbow] = useState(false);
+    const [newStarPopup, setNewStarPopup] = useState(null); // { section: 'words'|'syllables', count: number } or null
     const [synced, setSynced] = useState(false);
     const saveTimer = useRef(null);
 
@@ -258,6 +259,20 @@ export const RewardsProvider = ({ children, userId, onLogout }) => {
         });
     }, []);
 
+    const checkStarMilestone = useCallback((section) => {
+        setStats(prev => {
+            const newStats = { ...prev };
+            if (section === 'syllables' && prev.syllablesCorrect > 0 && prev.syllablesCorrect % 10 === 0) {
+                newStats.starCount += 1;
+                setTimeout(() => setNewStarPopup({ section: 'syllables', count: newStats.starCount }), 500);
+            } else if (section === 'words' && prev.wordsCorrect > 0 && prev.wordsCorrect % 10 === 0) {
+                newStats.gemCount += 1;
+                setTimeout(() => setNewStarPopup({ section: 'words', count: newStats.gemCount }), 500);
+            }
+            return newStats;
+        });
+    }, []);
+
     // Dismiss the popup
     const dismissUnlock = useCallback(() => {
         setNewlyUnlocked(null);
@@ -265,6 +280,10 @@ export const RewardsProvider = ({ children, userId, onLogout }) => {
 
     const dismissRainbow = useCallback(() => {
         setNewRainbow(false);
+    }, []);
+
+    const dismissStarPopup = useCallback(() => {
+        setNewStarPopup(null);
     }, []);
 
     // Logout handler
@@ -287,14 +306,17 @@ export const RewardsProvider = ({ children, userId, onLogout }) => {
             unlockedIds,
             newlyUnlocked,
             newRainbow,
+            newStarPopup,
             addCorrect,
             addIncorrect,
             completeSequential,
             registerPlayDay,
             checkUnlocks,
             checkRainbow,
+            checkStarMilestone,
             dismissUnlock,
             dismissRainbow,
+            dismissStarPopup,
             handleLogout,
         }}>
             {children}

@@ -13,10 +13,14 @@ import { speak } from './AudioFeedback';
 import Confetti from 'react-confetti';
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
 import { Volume2, Star, ArrowLeft } from 'lucide-react';
+import StarPopup from './StarPopup';
 
 const GameCanvas = () => {
     const { section, score, gameMode, currentLevel, nextLevel, resetGame } = useGame();
-    const { addCorrect, addIncorrect, checkUnlocks, newlyUnlocked, dismissUnlock } = useRewards();
+    const { 
+        addCorrect, addIncorrect, checkUnlocks, checkStarMilestone, 
+        newlyUnlocked, dismissUnlock, newStarPopup, dismissStarPopup 
+    } = useRewards();
     const [showExitConfirm, setShowExitConfirm] = useState(false);
     const [showAlphabetComplete, setShowAlphabetComplete] = useState(false);
 
@@ -24,8 +28,11 @@ const GameCanvas = () => {
     useEffect(() => {
         if (score > 0) {
             checkUnlocks();
+            if (section === 'words' || section === 'syllables') {
+                checkStarMilestone(section);
+            }
         }
-    }, [score, checkUnlocks]);
+    }, [score, checkUnlocks, section, checkStarMilestone]);
 
     // Hooks for Syllable/Alphabet/Word games (must be before early returns)
     const { currentSyllable, options, feedback, checkAnswer } = useGameLogic();
@@ -56,7 +63,7 @@ const GameCanvas = () => {
     // Automatic Level Progression (Syllables)
     useEffect(() => {
         if (section === 'syllables' && currentLevel === 'level1' && score >= 10) {
-            speak('¡Felicidades Olivia! ¡Ganaste! Pasamos al siguiente nivel.');
+            speak('¡Felicidades! ¡Ganaste! Pasamos al siguiente nivel.');
 
             const timer = setTimeout(() => {
                 nextLevel();
@@ -70,7 +77,7 @@ const GameCanvas = () => {
     useEffect(() => {
         if (section === 'alphabet' && score >= 27 && !showAlphabetComplete) {
             setShowAlphabetComplete(true);
-            speak('¡Felicidades Olivia! ¡Completaste el abecedario!');
+            speak('¡Felicidades! ¡Completaste el abecedario!');
         }
     }, [section, score, showAlphabetComplete]);
 
@@ -99,12 +106,22 @@ const GameCanvas = () => {
     const handleCardClick = (syllable) => {
         if (gameMode === 'listening') {
             setSelectedOption(syllable);
-            const isCorrect = checkAnswer(syllable);
+            
+            // Prevent '¡Muy bien!' from overlapping with level up or completion sounds
+            const newScore = score + 1;
+            const isLevelUp = (section === 'syllables' && currentLevel === 'level1' && newScore >= 10);
+            const isAlphabetComplete = (section === 'alphabet' && newScore >= 27);
+            const isLevelComplete = isLevelUp || isAlphabetComplete;
+            
+            const isCorrect = checkAnswer(syllable, isLevelComplete);
+            
             if (isCorrect) {
-                speak('¡Muy bien!');
+                if (!isLevelComplete) {
+                    speak('¡Muy bien!');
+                }
                 addCorrect(section);
             } else {
-                speak('Intentá nuevamente Oli!');
+                speak('¡Intentá nuevamente!');
                 addIncorrect();
             }
             setTimeout(() => setSelectedOption(null), 1500);
@@ -129,6 +146,14 @@ const GameCanvas = () => {
 
             {/* Reward popup */}
             <RewardPopup mascot={newlyUnlocked} onDismiss={dismissUnlock} />
+
+            {/* Star Milestone popup */}
+            <StarPopup 
+                isOpen={!!newStarPopup} 
+                section={newStarPopup?.section} 
+                count={newStarPopup?.count} 
+                onDismiss={dismissStarPopup} 
+            />
 
             {/* Exit confirmation */}
             <ConfirmDialog

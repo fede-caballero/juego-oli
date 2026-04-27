@@ -1,20 +1,22 @@
 import React from 'react';
 import Confetti from 'react-confetti';
 
-const RewardPopup = ({ mascot, onDismiss }) => {
+const RewardPopup = ({ mascot, onDismiss, previewMode = false }) => {
     if (!mascot) return null;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <Confetti recycle={false} numberOfPieces={300} />
+            {!previewMode && <Confetti recycle={false} numberOfPieces={300} />}
 
             {/* Backdrop */}
-            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onDismiss} />
 
             {/* Dialog */}
             <div className="relative bg-gradient-to-b from-yellow-100 to-orange-100 rounded-3xl shadow-2xl p-6 sm:p-8 max-w-sm w-full animate-pop-in">
                 {/* Sparkle header */}
-                <div className="text-center text-3xl mb-2">✨ ¡Nueva Mascota! ✨</div>
+                <div className="text-center text-3xl mb-2">
+                    {previewMode ? '✨ Mi Mascota ✨' : '✨ ¡Nueva Mascota! ✨'}
+                </div>
 
                 {/* Mascot image */}
                 <div className="flex justify-center mb-3">

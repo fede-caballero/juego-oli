@@ -103,9 +103,9 @@ export const speak = async (text) => {
             'wo': 'guo',
             'wu': 'guu',
             // G syllables (fix acronym reading)
-            'ga': 'gá',
-            'go': 'gó',
-            'gu': 'gú',
+            'ga': 'ga',
+            'go': 'go',
+            'gu': 'gu',
             // H syllables (silent H)
             'ha': 'a',
             'he': 'e',
@@ -131,10 +131,10 @@ export const speak = async (text) => {
         const phraseMap = {
             "¡muy bien!": "muy_bien",
             "probá de nuevo": "proba_de_nuevo",
-            "intentá nuevamente oli": "intenta_nuevamente_oli",
-            "¡felicidades olivia! ¡ganaste! pasamos al siguiente nivel.": "felicidades_ganaste",
+            "¡intentá nuevamente!": "intenta_nuevamente_oli",
+            "¡felicidades! ¡ganaste! pasamos al siguiente nivel.": "felicidades_ganaste",
             "mantené apretado y decí la palabra": "mantene_apretado",
-            "hola, soy olivia": "hola_soy_olivia",
+            "hola, soy la mascota": "hola_soy_olivia",
             "nivel 1": "nivel_1",
             "nivel 2": "nivel_2"
         };

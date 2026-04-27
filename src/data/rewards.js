@@ -140,6 +140,7 @@ export const getStreakTier = (days) => {
 
 // Rainbow rewards: earned every 30 points in random number mode
 export const RAINBOW_MILESTONE = 30;
+export const STAR_MILESTONE = 10; // For syllables (stars) and words (gems)
 
 // Default stats shape
 export const DEFAULT_STATS = {
@@ -158,5 +159,7 @@ export const DEFAULT_STATS = {
     bestConsecutiveDays: 0,
     lastPlayDate: null,
     rainbowCount: 0,
+    starCount: 0,
+    gemCount: 0,
     unlockedMascots: [],  // array of mascot ids with unlock dates
 };

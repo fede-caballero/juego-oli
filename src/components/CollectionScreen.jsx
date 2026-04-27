@@ -3,10 +3,12 @@ import { useRewards } from '../context/RewardsContext';
 import { useGame } from '../context/GameContext';
 import { MASCOTS, getStreakTier, STREAK_TIERS } from '../data/rewards';
 import { ArrowLeft, Lock, Flame, Rainbow } from 'lucide-react';
+import RewardPopup from './RewardPopup';
 
 const CollectionScreen = () => {
     const { stats, unlockedIds } = useRewards();
     const { resetGame } = useGame();
+    const [selectedMascot, setSelectedMascot] = React.useState(null);
 
     const streakTier = getStreakTier(stats.consecutiveDays);
 
@@ -83,11 +85,12 @@ const CollectionScreen = () => {
                     return (
                         <div
                             key={mascot.id}
+                            onClick={() => isUnlocked && setSelectedMascot(mascot)}
                             className={`
                                 relative flex flex-col items-center p-2 rounded-2xl shadow-md
                                 transition-all duration-300
                                 ${isUnlocked
-                                    ? 'bg-white/80 hover:scale-105'
+                                    ? 'bg-white/80 hover:scale-105 cursor-pointer'
                                     : 'bg-gray-200/50 grayscale opacity-60'
                                 }
                             `}
@@ -154,6 +157,13 @@ const CollectionScreen = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Mascot Preview Popup */}
+            <RewardPopup 
+                mascot={selectedMascot} 
+                onDismiss={() => setSelectedMascot(null)} 
+                previewMode={true}
+            />
         </div>
     );
 };
