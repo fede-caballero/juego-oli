@@ -50,7 +50,7 @@ const VoiceSelector = () => {
     const handleSelect = (voiceURI) => {
         setPreferredVoice(voiceURI);
         setSelectedURI(voiceURI);
-        speak('Hola, soy Olivia');
+        speak('Hola, ¡bienvenido!');
     };
 
     const handleVerifyKey = () => {
