@@ -4,7 +4,7 @@ import { LEVEL_ORDER } from '../data/syllables';
 const GameContext = createContext();
 
 export const GameProvider = ({ children }) => {
-    const [section, setSection] = useState('menu'); // 'menu', 'alphabet', 'syllables', 'words'
+    const [section, setSection] = useState('menu'); // 'menu', 'alphabet', 'syllables', 'words', 'numbers', 'collection'
     const [currentLevelIndex, setCurrentLevelIndex] = useState(0);
     const [score, setScore] = useState(0);
     const [gameMode, setGameMode] = useState('listening'); // 'listening' or 'speaking'

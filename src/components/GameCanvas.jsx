@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useGame } from '../context/GameContext';
+import { useRewards } from '../context/RewardsContext';
 import { useGameLogic } from '../hooks/useGameLogic';
 import SyllableCard from './SyllableCard';
 import MicrophoneButton from './MicrophoneButton';
 import MainMenu from './MainMenu';
 import NumberGame from './NumberGame';
+import CollectionScreen from './CollectionScreen';
+import ConfirmDialog from './ConfirmDialog';
+import RewardPopup from './RewardPopup';
 import { speak } from './AudioFeedback';
 import Confetti from 'react-confetti';
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
@@ -12,22 +16,49 @@ import { Volume2, Star, ArrowLeft } from 'lucide-react';
 
 const GameCanvas = () => {
     const { section, score, gameMode, currentLevel, nextLevel, resetGame } = useGame();
+    const { addCorrect, addIncorrect, checkUnlocks, newlyUnlocked, dismissUnlock } = useRewards();
+    const [showExitConfirm, setShowExitConfirm] = useState(false);
+
+    // Check for unlocks after any score change
+    useEffect(() => {
+        if (score > 0) {
+            checkUnlocks();
+        }
+    }, [score, checkUnlocks]);
 
     if (section === 'menu') {
-        return <MainMenu />;
+        return (
+            <>
+                <RewardPopup mascot={newlyUnlocked} onDismiss={dismissUnlock} />
+                <MainMenu />
+            </>
+        );
+    }
+
+    if (section === 'collection') {
+        return <CollectionScreen />;
     }
 
     if (section === 'numbers') {
-        return <NumberGame />;
+        return (
+            <>
+                <RewardPopup mascot={newlyUnlocked} onDismiss={dismissUnlock} />
+                <NumberGame />
+            </>
+        );
     }
 
     const { currentSyllable, options, feedback, checkAnswer } = useGameLogic();
     const [selectedOption, setSelectedOption] = useState(null);
     const { transcript, listening, resetTranscript, browserSupportsSpeechRecognition } = useSpeechRecognition();
 
+    // Auto-play audio when a new syllable/letter/word is loaded
     useEffect(() => {
         if (gameMode === 'listening' && currentSyllable) {
-            speak(`Seleccioná... ${currentSyllable}`);
+            const timer = setTimeout(() => {
+                speak(`Seleccioná... ${currentSyllable}`);
+            }, 300);
+            return () => clearTimeout(timer);
         }
     }, [currentSyllable, gameMode]);
 
@@ -46,11 +77,10 @@ const GameCanvas = () => {
     useEffect(() => {
         if (section === 'syllables' && currentLevel === 'level1' && score >= 10) {
             speak('¡Felicidades Olivia! ¡Ganaste! Pasamos al siguiente nivel.');
-            // Optional: Trigger extra confetti or visual effect here if needed
 
             const timer = setTimeout(() => {
                 nextLevel();
-            }, 4000); // 4 seconds delay to listen to the message
+            }, 4000);
 
             return () => clearTimeout(timer);
         }
@@ -62,10 +92,20 @@ const GameCanvas = () => {
             const isCorrect = checkAnswer(syllable);
             if (isCorrect) {
                 speak('¡Muy bien!');
+                addCorrect(section);
             } else {
                 speak('Intentá nuevamente Oli!');
+                addIncorrect();
             }
             setTimeout(() => setSelectedOption(null), 1500);
+        }
+    };
+
+    const handleBackClick = () => {
+        if (score > 0) {
+            setShowExitConfirm(true);
+        } else {
+            resetGame('menu');
         }
     };
 
@@ -77,6 +117,19 @@ const GameCanvas = () => {
         <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-blue-200 to-purple-200 p-4">
             {feedback === 'correct' && <Confetti recycle={false} numberOfPieces={200} />}
 
+            {/* Reward popup */}
+            <RewardPopup mascot={newlyUnlocked} onDismiss={dismissUnlock} />
+
+            {/* Exit confirmation */}
+            <ConfirmDialog
+                isOpen={showExitConfirm}
+                onConfirm={() => {
+                    setShowExitConfirm(false);
+                    resetGame('menu');
+                }}
+                onCancel={() => setShowExitConfirm(false)}
+            />
+
             {/* Header / Score */}
             <div className="absolute top-4 right-4 flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-md">
                 <Star className="text-yellow-400 fill-current" />
@@ -84,7 +137,7 @@ const GameCanvas = () => {
             </div>
 
             <button
-                onClick={() => resetGame('menu')}
+                onClick={handleBackClick}
                 className="absolute top-4 left-4 bg-white p-2 rounded-full shadow-md hover:bg-gray-100"
             >
                 <ArrowLeft className="text-purple-600" />
@@ -99,7 +152,7 @@ const GameCanvas = () => {
             </div>
 
             <h1 className="text-4xl font-bold text-white mb-8 drop-shadow-md mt-12">
-                {section === 'alphabet' ? 'Abecedario' : section === 'words' ? 'Palabras' : section === 'numbers' ? 'Números Mágicos' : 'Sílaba Mágica'}
+                {section === 'alphabet' ? 'Abecedario' : section === 'words' ? 'Palabras' : 'Sílaba Mágica'}
             </h1>
 
             {/* Game Area */}

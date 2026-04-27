@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useGame } from '../context/GameContext';
+import { useRewards } from '../context/RewardsContext';
 import NumberDisplay from './NumberDisplay';
 import NumberPad from './NumberPad';
+import ConfirmDialog from './ConfirmDialog';
+import RainbowPopup from './RainbowPopup';
 import { speak } from './AudioFeedback';
 import { numberToSpanish, getRandomNumber, DEFAULT_MAX_NUMBER } from '../data/numbers';
 import Confetti from 'react-confetti';
@@ -9,6 +12,7 @@ import { Volume2, Star, ArrowLeft, Shuffle, ListOrdered, Settings2 } from 'lucid
 
 const NumberGame = () => {
     const { score, addScore, resetGame } = useGame();
+    const { addCorrect, addIncorrect, completeSequential, checkUnlocks, checkRainbow, newRainbow, dismissRainbow, stats } = useRewards();
 
     // Settings
     const [maxNumber, setMaxNumber] = useState(() => {
@@ -19,6 +23,7 @@ const NumberGame = () => {
         return localStorage.getItem('silaba_magica_number_mode') || 'random';
     }); // 'random' or 'sequential'
     const [showSettings, setShowSettings] = useState(false);
+    const [showExitConfirm, setShowExitConfirm] = useState(false);
 
     // Game state
     const [targetNumber, setTargetNumber] = useState(null);
@@ -120,16 +125,25 @@ const NumberGame = () => {
             setFeedback('correct');
             setDisabled(true);
             addScore(1);
+            addCorrect('numbers', modeRef.current);
             speak('¡Muy bien!');
+
+            // Check for rewards after a small delay
+            setTimeout(() => {
+                checkUnlocks();
+                if (modeRef.current === 'random') checkRainbow();
+            }, 300);
 
             setTimeout(() => {
                 if (modeRef.current === 'sequential') {
                     if (sequentialRef.current >= maxNumberRef.current) {
                         // Completed all numbers!
+                        completeSequential();
                         speak('¡Felicidades Olivia! ¡Terminaste todos los números!');
                         setTimeout(() => {
                             sequentialRef.current = 1;
                             setSequentialDisplay(1);
+                            checkUnlocks();
                             startNewRound();
                         }, 4000);
                         return;
@@ -141,6 +155,7 @@ const NumberGame = () => {
             }, 2000);
         } else {
             setFeedback('incorrect');
+            addIncorrect();
             speak('Intentá de nuevo, Oli');
             setTimeout(() => {
                 setInputDigits('');
@@ -162,16 +177,42 @@ const NumberGame = () => {
         setMaxNumber(num);
     };
 
+    // Handle back button with confirmation
+    const handleBackClick = () => {
+        if (score > 0) {
+            setShowExitConfirm(true);
+        } else {
+            resetGame('menu');
+        }
+    };
+
     return (
         <div className="flex flex-col h-dvh bg-gradient-to-b from-emerald-200 to-cyan-200 p-2 sm:p-4 overflow-hidden">
             {feedback === 'correct' && <Confetti recycle={false} numberOfPieces={200} />}
+
+            {/* Rainbow milestone popup */}
+            <RainbowPopup
+                isOpen={newRainbow}
+                count={stats.rainbowCount}
+                onDismiss={dismissRainbow}
+            />
+
+            {/* Exit confirmation */}
+            <ConfirmDialog
+                isOpen={showExitConfirm}
+                onConfirm={() => {
+                    setShowExitConfirm(false);
+                    resetGame('menu');
+                }}
+                onCancel={() => setShowExitConfirm(false)}
+            />
 
             {/* Header bar */}
             <div className="flex items-center justify-between w-full shrink-0 mb-1 sm:mb-2">
                 <div className="flex items-center gap-2">
                     {/* Back button */}
                     <button
-                        onClick={() => resetGame('menu')}
+                        onClick={handleBackClick}
                         className="bg-white p-1.5 sm:p-2 rounded-full shadow-md hover:bg-gray-100"
                     >
                         <ArrowLeft className="w-5 h-5 text-teal-600" />
