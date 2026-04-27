@@ -6,6 +6,7 @@ const VoiceSelector = () => {
     const [voices, setVoices] = useState([]);
     const [selectedURI, setSelectedURI] = useState(localStorage.getItem('silaba_magica_voice'));
     const [apiKey, setApiKey] = useState(localStorage.getItem('silaba_magica_gcloud_key') || '');
+    const [tempKey, setTempKey] = useState(localStorage.getItem('silaba_magica_gcloud_key') || '');
     const [isOpen, setIsOpen] = useState(false);
     const [loading, setLoading] = useState(false);
 
@@ -46,11 +47,10 @@ const VoiceSelector = () => {
         speak('Hola, soy Olivia');
     };
 
-    const handleApiKeyChange = (e) => {
-        const key = e.target.value;
-        setApiKey(key);
-        setGoogleCloudKey(key);
-    }
+    const handleVerifyKey = () => {
+        setApiKey(tempKey);
+        setGoogleCloudKey(tempKey);
+    };
 
     return (
         <div className="mt-8 w-full max-w-md">
@@ -70,13 +70,21 @@ const VoiceSelector = () => {
                         <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
                             <Key className="w-4 h-4" /> Google Cloud API Key (Opcional)
                         </label>
-                        <input
-                            type="password"
-                            value={apiKey}
-                            onChange={handleApiKeyChange}
-                            placeholder="Pega tu API Key aquí"
-                            className="w-full p-2 border rounded-lg text-sm focus:ring-2 focus:ring-purple-400 outline-none"
-                        />
+                        <div className="flex gap-2">
+                            <input
+                                type="password"
+                                value={tempKey}
+                                onChange={(e) => setTempKey(e.target.value)}
+                                placeholder="Pega tu API Key aquí"
+                                className="flex-1 p-2 border rounded-lg text-sm focus:ring-2 focus:ring-purple-400 outline-none"
+                            />
+                            <button
+                                onClick={handleVerifyKey}
+                                className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-bold shadow transition-colors"
+                            >
+                                Validar
+                            </button>
+                        </div>
                         <p className="text-xs text-gray-500 mt-1">
                             Si tienes una API Key de Google Cloud, pégala aquí para usar voces neuronales de alta calidad.
                         </p>
