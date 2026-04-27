@@ -21,17 +21,23 @@ export const unlockAudio = () => {
 };
 
 export const getGoogleCloudVoices = async () => {
-    if (!googleCloudApiKey) return [];
+    if (!googleCloudApiKey) return { voices: [], error: null };
     try {
         const response = await fetch(`https://texttospeech.googleapis.com/v1/voices?key=${googleCloudApiKey}`);
         const data = await response.json();
-        if (data.voices) {
-            return data.voices.filter(v => v.languageCodes.some(code => code.startsWith('es')));
+        
+        if (!response.ok) {
+            return { voices: [], error: data?.error?.message || 'API Key inválida o API no habilitada' };
         }
-        return [];
+        
+        if (data.voices) {
+            const spanishVoices = data.voices.filter(v => v.languageCodes.some(code => code.startsWith('es')));
+            return { voices: spanishVoices, error: null };
+        }
+        return { voices: [], error: null };
     } catch (error) {
         console.error("Error fetching Google Cloud voices:", error);
-        return [];
+        return { voices: [], error: 'Error de red al conectar con Google Cloud' };
     }
 };
 

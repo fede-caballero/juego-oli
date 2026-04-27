@@ -9,6 +9,7 @@ const VoiceSelector = () => {
     const [tempKey, setTempKey] = useState(localStorage.getItem('silaba_magica_gcloud_key') || '');
     const [isOpen, setIsOpen] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [cloudError, setCloudError] = useState(null);
 
     useEffect(() => {
         loadVoices();
@@ -24,8 +25,13 @@ const VoiceSelector = () => {
 
         // 2. Google Cloud Voices (if key is present)
         let cloudVoices = [];
+        setCloudError(null);
         if (apiKey) {
-            cloudVoices = await getGoogleCloudVoices();
+            const result = await getGoogleCloudVoices();
+            if (result.error) {
+                setCloudError(result.error);
+            }
+            cloudVoices = result.voices;
         }
 
         // Combine logic
@@ -88,6 +94,11 @@ const VoiceSelector = () => {
                         <p className="text-xs text-gray-500 mt-1">
                             Si tienes una API Key de Google Cloud, pégala aquí para usar voces neuronales de alta calidad.
                         </p>
+                        {cloudError && (
+                            <p className="text-xs text-red-500 mt-2 p-2 bg-red-50 rounded font-medium">
+                                ⚠️ {cloudError}
+                            </p>
+                        )}
                     </div>
 
                     <div className="max-h-60 overflow-y-auto border-t pt-2">
