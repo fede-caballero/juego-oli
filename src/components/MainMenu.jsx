@@ -2,12 +2,14 @@ import React, { useEffect } from 'react';
 import { useGame } from '../context/GameContext';
 import { useRewards } from '../context/RewardsContext';
 import { getStreakTier } from '../data/rewards';
-import { Book, Type, MessageSquare, Hash, Trophy, Flame } from 'lucide-react';
+import { getUser } from '../services/api';
+import { Book, Type, MessageSquare, Hash, Trophy, Flame, LogOut } from 'lucide-react';
 import VoiceSelector from './VoiceSelector';
 
 const MainMenu = () => {
     const { resetGame } = useGame();
-    const { stats, registerPlayDay } = useRewards();
+    const { stats, registerPlayDay, handleLogout } = useRewards();
+    const user = getUser();
 
     // Register today as a play day
     useEffect(() => {
@@ -25,6 +27,20 @@ const MainMenu = () => {
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-yellow-200 to-orange-200 p-4">
+            {/* User greeting + logout */}
+            <div className="absolute top-4 left-4 flex items-center gap-2">
+                <span className="text-sm font-bold text-orange-600 bg-white/80 px-3 py-1.5 rounded-full shadow-md">
+                    👋 {user?.name || 'Jugador'}
+                </span>
+                <button
+                    onClick={handleLogout}
+                    className="bg-white/80 p-1.5 rounded-full shadow-md hover:bg-red-100 transition-colors"
+                    title="Cambiar jugador"
+                >
+                    <LogOut className="w-4 h-4 text-gray-400" />
+                </button>
+            </div>
+
             {/* Streak badge */}
             {stats.consecutiveDays > 0 && (
                 <div className="absolute top-4 right-4 flex items-center gap-1.5 bg-white/80 px-3 py-1.5 rounded-full shadow-md">

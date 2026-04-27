@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { MASCOTS, DEFAULT_STATS, RAINBOW_MILESTONE } from '../data/rewards';
+import { loadProgress, saveProgress } from '../services/api';
 
 const RewardsContext = createContext();
 
@@ -27,15 +28,101 @@ const saveToStorage = (stats) => {
     }
 };
 
-export const RewardsProvider = ({ children }) => {
+export const RewardsProvider = ({ children, userId, onLogout }) => {
     const [stats, setStats] = useState(loadFromStorage);
     const [newlyUnlocked, setNewlyUnlocked] = useState(null); // mascot object or null
     const [newRainbow, setNewRainbow] = useState(false);
+    const [synced, setSynced] = useState(false);
+    const saveTimer = useRef(null);
+
+    // Load from backend on mount (merge with local)
+    useEffect(() => {
+        if (!userId) return;
+
+        loadProgress().then(serverStats => {
+            if (serverStats && Object.keys(serverStats).length > 0) {
+                setStats(prev => {
+                    // Merge: take the higher value for each numeric stat
+                    const merged = { ...DEFAULT_STATS };
+                    const sources = [prev, serverStats];
+
+                    for (const key of Object.keys(DEFAULT_STATS)) {
+                        if (typeof DEFAULT_STATS[key] === 'number') {
+                            merged[key] = Math.max(
+                                ...sources.map(s => (s[key] ?? 0))
+                            );
+                        } else if (key === 'playDates') {
+                            // Union of play dates
+                            const allDates = new Set([
+                                ...(prev.playDates || []),
+                                ...(serverStats.playDates || []),
+                            ]);
+                            merged.playDates = [...allDates].sort();
+                            merged.daysPlayed = merged.playDates.length;
+                        } else if (key === 'unlockedMascots') {
+                            // Union of unlocked mascots
+                            const byId = {};
+                            for (const m of [...(prev.unlockedMascots || []), ...(serverStats.unlockedMascots || [])]) {
+                                if (!byId[m.id]) byId[m.id] = m;
+                            }
+                            merged.unlockedMascots = Object.values(byId);
+                        } else if (key === 'lastPlayDate') {
+                            merged.lastPlayDate = [prev.lastPlayDate, serverStats.lastPlayDate]
+                                .filter(Boolean)
+                                .sort()
+                                .pop() || null;
+                        }
+                    }
+
+                    return merged;
+                });
+                setSynced(true);
+            }
+        }).catch(() => {
+            console.warn('Could not load progress from server');
+        });
+    }, [userId]);
 
     // Save to localStorage whenever stats change
     useEffect(() => {
         saveToStorage(stats);
     }, [stats]);
+
+    // Debounced save to backend (every 5 seconds after changes)
+    useEffect(() => {
+        if (!userId || !synced) return;
+
+        if (saveTimer.current) clearTimeout(saveTimer.current);
+        saveTimer.current = setTimeout(() => {
+            saveProgress(stats).catch(() => {
+                console.warn('Could not save progress to server');
+            });
+        }, 5000);
+
+        return () => {
+            if (saveTimer.current) clearTimeout(saveTimer.current);
+        };
+    }, [stats, userId, synced]);
+
+    // Save immediately on unload
+    useEffect(() => {
+        const handleBeforeUnload = () => {
+            if (userId) {
+                // Use sendBeacon for reliable save on page close
+                const token = localStorage.getItem('silaba_magica_token');
+                const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3456';
+                if (token) {
+                    navigator.sendBeacon(
+                        `${apiUrl}/api/progress-beacon`,
+                        new Blob([JSON.stringify({ stats, token })], { type: 'application/json' })
+                    );
+                }
+            }
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    }, [stats, userId]);
 
     // Register today as a play day (call on app load or game start)
     const registerPlayDay = useCallback(() => {
@@ -180,6 +267,17 @@ export const RewardsProvider = ({ children }) => {
         setNewRainbow(false);
     }, []);
 
+    // Logout handler
+    const handleLogout = useCallback(() => {
+        // Save final state to server before logout
+        if (userId) {
+            saveProgress(stats).catch(() => {});
+        }
+        setStats({ ...DEFAULT_STATS });
+        localStorage.removeItem(STORAGE_KEY);
+        if (onLogout) onLogout();
+    }, [userId, stats, onLogout]);
+
     // Get unlocked mascot ids
     const unlockedIds = stats.unlockedMascots.map(m => m.id);
 
@@ -197,6 +295,7 @@ export const RewardsProvider = ({ children }) => {
             checkRainbow,
             dismissUnlock,
             dismissRainbow,
+            handleLogout,
         }}>
             {children}
         </RewardsContext.Provider>
