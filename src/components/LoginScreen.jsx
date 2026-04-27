@@ -28,8 +28,8 @@ const LoginScreen = ({ onLogin }) => {
         const newPin = pin + digit;
         setPin(newPin);
 
-        // Auto-submit when 4 digits
-        if (newPin.length === 4) {
+        // Auto-submit when 4 digits (only for login, not register)
+        if (newPin.length === 4 && mode === 'pin') {
             handleLogin(selectedUser?.name || name, newPin);
         }
     };
