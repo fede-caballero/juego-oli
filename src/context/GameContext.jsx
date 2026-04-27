@@ -47,11 +47,16 @@ export const GameProvider = ({ children }) => {
         }
     };
 
-    const resetGame = (newSection) => {
+    const [alphabetMode, setAlphabetMode] = useState('random');
+
+    const resetGame = (newSection, newAlphabetMode = 'random') => {
         setSection(newSection);
         setCurrentLevelIndex(0);
         setScore(0);
         setGameMode('listening');
+        if (newSection === 'alphabet') {
+            setAlphabetMode(newAlphabetMode);
+        }
     };
 
     const addScore = (points) => {
@@ -68,6 +73,7 @@ export const GameProvider = ({ children }) => {
             currentLevel: currentLevelData,
             score,
             gameMode,
+            alphabetMode,
             nextLevel,
             addScore,
             toggleGameMode,

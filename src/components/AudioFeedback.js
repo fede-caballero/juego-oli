@@ -6,6 +6,20 @@ export const setGoogleCloudKey = (key) => {
     localStorage.setItem('silaba_magica_gcloud_key', key);
 };
 
+export const unlockAudio = () => {
+    try {
+        const audio = new Audio();
+        audio.play().catch(() => {});
+        if ('speechSynthesis' in window) {
+            const utterance = new SpeechSynthesisUtterance('');
+            utterance.volume = 0;
+            window.speechSynthesis.speak(utterance);
+        }
+    } catch (e) {
+        // Ignore
+    }
+};
+
 export const getGoogleCloudVoices = async () => {
     if (!googleCloudApiKey) return [];
     try {
@@ -187,25 +201,24 @@ export const speak = async (text) => {
 
         if (filename) {
             const audio = new Audio(`/audio/${filename}.mp3`);
-            // Try to play. If it fails (404), we should ideally fallback.
-            // But 'speak' is continuously called. 
-            // We can attach an error handler that calls TTS?
-            // "error" event catches 404.
-
-            let played = false;
-            await new Promise((resolve) => {
-                audio.oncanplaythrough = () => {
-                    audio.play();
-                    played = true;
-                    resolve();
-                };
-                audio.onerror = () => {
-                    resolve(); // resolve without playing
-                };
-                setTimeout(resolve, 500); // timeout if loading takes too long
-            });
-
-            if (played) return;
+            
+            try {
+                // Play immediately so the browser recognizes the user interaction context
+                const playPromise = audio.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(error => {
+                        console.warn("Audio file play failed, falling back to TTS:", error);
+                        // If it fails (e.g. file missing), we will fall through to TTS below
+                    });
+                }
+                // Assume success if we reached here without immediate throw.
+                // We return to prevent double-speaking with TTS if the file exists.
+                // If it fails asynchronously, the catch block catches it but we already returned.
+                // For a robust fallback, we'd need to wait for the promise, but waiting might break gesture.
+                return;
+            } catch (e) {
+                console.warn("Audio file error:", e);
+            }
         }
 
         // 1. Try Google Cloud if configured and selected

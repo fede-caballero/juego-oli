@@ -1,14 +1,21 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useGame } from '../context/GameContext';
 import { SYLLABLE_LEVELS } from '../data/syllables';
 import { ALPHABET_DATA } from '../data/alphabet';
 import { WORD_LEVELS } from '../data/words';
 
 export const useGameLogic = () => {
-    const { section, currentLevel, addScore } = useGame();
+    const { section, currentLevel, addScore, alphabetMode } = useGame();
     const [currentSyllable, setCurrentSyllable] = useState('');
     const [options, setOptions] = useState([]);
     const [feedback, setFeedback] = useState(null); // 'correct', 'incorrect', null
+    const alphabetIndexRef = useRef(0);
+
+    useEffect(() => {
+        if (section === 'alphabet' && alphabetMode === 'ordered') {
+            alphabetIndexRef.current = 0;
+        }
+    }, [section, alphabetMode]);
 
     const generateNewRound = useCallback(() => {
         let pool = [];
@@ -23,7 +30,13 @@ export const useGameLogic = () => {
 
         if (pool.length === 0) return;
 
-        const target = pool[Math.floor(Math.random() * pool.length)];
+        let target = '';
+        if (section === 'alphabet' && alphabetMode === 'ordered') {
+            target = pool[alphabetIndexRef.current % pool.length];
+        } else {
+            target = pool[Math.floor(Math.random() * pool.length)];
+        }
+        
         setCurrentSyllable(target);
 
         // Generate options
@@ -33,7 +46,7 @@ export const useGameLogic = () => {
         }
         setOptions(shuffled.sort(() => 0.5 - Math.random()));
         setFeedback(null);
-    }, [section, currentLevel]);
+    }, [section, currentLevel, alphabetMode]);
 
     useEffect(() => {
         generateNewRound();
@@ -43,6 +56,9 @@ export const useGameLogic = () => {
         if (answer === currentSyllable) {
             setFeedback('correct');
             addScore(1);
+            if (section === 'alphabet' && alphabetMode === 'ordered') {
+                alphabetIndexRef.current += 1;
+            }
             setTimeout(generateNewRound, 1500); // Wait for animation
             return true;
         } else {
