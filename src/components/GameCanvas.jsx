@@ -18,6 +18,7 @@ const GameCanvas = () => {
     const { section, score, gameMode, currentLevel, nextLevel, resetGame } = useGame();
     const { addCorrect, addIncorrect, checkUnlocks, newlyUnlocked, dismissUnlock } = useRewards();
     const [showExitConfirm, setShowExitConfirm] = useState(false);
+    const [showAlphabetComplete, setShowAlphabetComplete] = useState(false);
 
     // Check for unlocks after any score change
     useEffect(() => {
@@ -52,7 +53,7 @@ const GameCanvas = () => {
         }
     }, [transcript, gameMode, currentSyllable, checkAnswer, resetTranscript]);
 
-    // Automatic Level Progression
+    // Automatic Level Progression (Syllables)
     useEffect(() => {
         if (section === 'syllables' && currentLevel === 'level1' && score >= 10) {
             speak('¡Felicidades Olivia! ¡Ganaste! Pasamos al siguiente nivel.');
@@ -64,6 +65,14 @@ const GameCanvas = () => {
             return () => clearTimeout(timer);
         }
     }, [section, currentLevel, score, nextLevel]);
+
+    // Alphabet Completion
+    useEffect(() => {
+        if (section === 'alphabet' && score >= 27 && !showAlphabetComplete) {
+            setShowAlphabetComplete(true);
+            speak('¡Felicidades Olivia! ¡Completaste el abecedario!');
+        }
+    }, [section, score, showAlphabetComplete]);
 
     if (section === 'menu') {
         return (
@@ -130,6 +139,27 @@ const GameCanvas = () => {
                 }}
                 onCancel={() => setShowExitConfirm(false)}
             />
+
+            {/* Alphabet Completion Popup */}
+            {showAlphabetComplete && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+                    <div className="relative bg-gradient-to-b from-green-100 to-yellow-100 rounded-3xl shadow-2xl p-8 max-w-sm w-full animate-pop-in text-center">
+                        <div className="text-7xl mb-4 animate-bounce">🏆</div>
+                        <h2 className="text-3xl font-bold text-green-600 mb-2">¡Increíble!</h2>
+                        <p className="text-gray-600 mb-6 font-medium">¡Completaste todas las letras del abecedario!</p>
+                        <button
+                            onClick={() => {
+                                setShowAlphabetComplete(false);
+                                resetGame('menu');
+                            }}
+                            className="w-full py-3 px-4 rounded-2xl font-bold text-lg bg-gradient-to-r from-green-400 to-teal-400 text-white shadow-lg transform transition-all hover:scale-105 border-b-4 border-teal-600/30"
+                        >
+                            Volver al Menú
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {/* Header / Score */}
             <div className="absolute top-4 right-4 flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-md">

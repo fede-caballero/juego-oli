@@ -112,6 +112,8 @@ export const speak = async (text) => {
             'hi': 'i',
             'ho': 'o',
             'hu': 'u',
+            // V override for Spanish
+            'v': 've',
         };
 
         // Check if the text is exactly one of our overrides (for single syllable mode)
