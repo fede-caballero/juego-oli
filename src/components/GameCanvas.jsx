@@ -212,8 +212,9 @@ const GameCanvas = () => {
                 ) : (
                     /* Speaking Mode */
                     <div className="flex flex-col items-center gap-8">
-                        <div className="bg-white px-12 py-8 rounded-3xl shadow-xl">
-                            <span className="text-8xl font-bold text-purple-600">{currentSyllable}</span>
+                        <div className="bg-white px-12 py-8 rounded-3xl shadow-xl flex flex-col items-center">
+                            <span className="text-7xl font-bold text-purple-600 mb-2">{currentSyllable.toUpperCase()}</span>
+                            <span className="text-5xl font-semibold text-purple-400">{currentSyllable.toLowerCase()}</span>
                         </div>
                         <p className="text-white text-xl">Mantené apretado y decí la palabra</p>
                         <MicrophoneButton

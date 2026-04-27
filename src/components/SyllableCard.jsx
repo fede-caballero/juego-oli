@@ -10,14 +10,14 @@ const SyllableCard = ({ syllable, onClick, isSelected, feedback }) => {
             onClick={() => onClick(syllable)}
             className={`
         ${bgColor}
-        text-6xl font-bold text-purple-600
         w-40 h-40 rounded-3xl shadow-lg
         transform transition-all duration-200 hover:scale-110
         border-4 border-purple-200
-        flex items-center justify-center
+        flex flex-col items-center justify-center
       `}
         >
-            {syllable}
+            <span className="text-5xl font-bold text-purple-600 leading-none mb-2">{syllable.toUpperCase()}</span>
+            <span className="text-3xl font-semibold text-purple-400 leading-none">{syllable.toLowerCase()}</span>
         </button>
     );
 };
