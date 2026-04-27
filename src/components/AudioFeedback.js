@@ -152,25 +152,21 @@ export const speak = async (text) => {
                 // Try playing 'selecciona'
                 // Note: we can't easily chain without blocking, but this is a simple game.
                 // We will try to play them in sequence if files exist.
-                const vid1 = new Audio('/audio/selecciona.mp3');
-
-                // Check if files exist by trying to load? 
-                // Simple approach: try to play. If error, fallback to TTS.
-                // But we need to know if it failed.
+                const baseUrl = import.meta.env.BASE_URL || '/';
+                const vid1 = new Audio(`${baseUrl}audio/selecciona.mp3`.replace(/\/\//g, '/'));
 
                 const playSequence = async () => {
                     try {
                         await new Promise((resolve, reject) => {
                             vid1.oncanplaythrough = resolve;
                             vid1.onerror = reject;
-                            vid1.src = '/audio/selecciona.mp3'; // trigger load
+                            vid1.src = `${baseUrl}audio/selecciona.mp3`.replace(/\/\//g, '/'); // trigger load
                         });
 
                         vid1.play();
 
-                        // Wait for 1st audio roughly or onended
                         vid1.onended = () => {
-                            const vid2 = new Audio(`/audio/${syllable}.mp3`);
+                            const vid2 = new Audio(`${baseUrl}audio/${syllable}.mp3`.replace(/\/\//g, '/'));
                             vid2.play();
                         };
                         return true;
@@ -199,8 +195,52 @@ export const speak = async (text) => {
                 .replace(/ñ/g, "n");
         }
 
+        const doTTS = async () => {
+            // 1. Try Google Cloud if configured and selected
+            if (googleCloudApiKey && selectedVoiceURI && !selectedVoiceURI.includes('://')) {
+                // Google voices via API use the name as ID. If we hold a GC key, we try to use the selected voice name.
+                const success = await synthesizeGoogleCloud(textToSpeak, selectedVoiceURI);
+                if (success) return;
+            }
+
+            const utterance = new SpeechSynthesisUtterance(textToSpeak);
+
+            const voices = window.speechSynthesis.getVoices();
+            let targetVoice = null;
+
+            // 1. Try to use user's preferred voice
+            if (selectedVoiceURI) {
+                targetVoice = voices.find(v => v.voiceURI === selectedVoiceURI);
+            }
+
+            // 2. Fallback to Latin American voice, prioritizing Argentina
+            if (!targetVoice) {
+                targetVoice = voices.find(voice => voice.lang === 'es-AR') ||
+                    voices.find(voice =>
+                        voice.lang === 'es-MX' ||
+                        voice.lang === 'es-419' ||
+                        (voice.lang.startsWith('es') && voice.name.includes('Latin')) ||
+                        (voice.lang.startsWith('es') && voice.name.includes('America'))
+                    );
+            }
+
+            if (targetVoice) {
+                utterance.voice = targetVoice;
+                utterance.lang = targetVoice.lang;
+            } else {
+                // Fallback to generic Spanish
+                utterance.lang = 'es-ES';
+            }
+
+            utterance.rate = 0.8; // Slightly slower for kids
+            window.speechSynthesis.speak(utterance);
+        };
+
+        const baseUrl = import.meta.env.BASE_URL || '/';
+        const getAudioPath = (name) => `${baseUrl}audio/${name}.mp3`.replace(/\/\//g, '/');
+
         if (filename) {
-            const audio = new Audio(`/audio/${filename}.mp3`);
+            const audio = new Audio(getAudioPath(filename));
             
             try {
                 // Play immediately so the browser recognizes the user interaction context
@@ -208,56 +248,20 @@ export const speak = async (text) => {
                 if (playPromise !== undefined) {
                     playPromise.catch(error => {
                         console.warn("Audio file play failed, falling back to TTS:", error);
-                        // If it fails (e.g. file missing), we will fall through to TTS below
+                        // If it fails (e.g. file missing), fallback to TTS
+                        doTTS();
                     });
                 }
-                // Assume success if we reached here without immediate throw.
-                // We return to prevent double-speaking with TTS if the file exists.
-                // If it fails asynchronously, the catch block catches it but we already returned.
-                // For a robust fallback, we'd need to wait for the promise, but waiting might break gesture.
+                // Return to prevent double-speaking with TTS if the file exists.
                 return;
             } catch (e) {
                 console.warn("Audio file error:", e);
+                doTTS();
+                return;
             }
         }
 
-        // 1. Try Google Cloud if configured and selected
-        if (googleCloudApiKey && selectedVoiceURI && !selectedVoiceURI.includes('://')) {
-            // Google voices via API use the name as ID. If we hold a GC key, we try to use the selected voice name.
-            const success = await synthesizeGoogleCloud(textToSpeak, selectedVoiceURI);
-            if (success) return;
-        }
-
-        const utterance = new SpeechSynthesisUtterance(textToSpeak);
-
-        const voices = window.speechSynthesis.getVoices();
-        let targetVoice = null;
-
-        // 1. Try to use user's preferred voice
-        if (selectedVoiceURI) {
-            targetVoice = voices.find(v => v.voiceURI === selectedVoiceURI);
-        }
-
-        // 2. Fallback to Latin American voice, prioritizing Argentina
-        if (!targetVoice) {
-            targetVoice = voices.find(voice => voice.lang === 'es-AR') ||
-                voices.find(voice =>
-                    voice.lang === 'es-MX' ||
-                    voice.lang === 'es-419' ||
-                    (voice.lang.startsWith('es') && voice.name.includes('Latin')) ||
-                    (voice.lang.startsWith('es') && voice.name.includes('America'))
-                );
-        }
-
-        if (targetVoice) {
-            utterance.voice = targetVoice;
-            utterance.lang = targetVoice.lang;
-        } else {
-            // Fallback to generic Spanish
-            utterance.lang = 'es-ES';
-        }
-
-        utterance.rate = 0.8; // Slightly slower for kids
-        window.speechSynthesis.speak(utterance);
+        // If no filename matched our MP3 list, do TTS immediately
+        doTTS();
     }
 };
