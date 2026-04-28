@@ -139,7 +139,7 @@ const NumberGame = () => {
                     if (sequentialRef.current >= maxNumberRef.current) {
                         // Completed all numbers!
                         completeSequential();
-                        speak('¡Felicidades Olivia! ¡Terminaste todos los números!');
+                        speak('¡Felicidades! ¡Terminaste todos los números!');
                         setTimeout(() => {
                             sequentialRef.current = 1;
                             setSequentialDisplay(1);
@@ -156,7 +156,7 @@ const NumberGame = () => {
         } else {
             setFeedback('incorrect');
             addIncorrect();
-            speak('Intentá de nuevo, Oli');
+            speak('¡Intentá nuevamente!');
             setTimeout(() => {
                 setInputDigits('');
                 setFeedback(null);
