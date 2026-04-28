@@ -29,7 +29,7 @@ const CollectionScreen = () => {
             </div>
 
             {/* Stats Summary */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 mb-4">
                 <div className="bg-white/70 rounded-2xl p-3 text-center shadow">
                     <div className="text-2xl font-bold text-purple-600">{unlockedIds.length}/12</div>
                     <div className="text-xs text-gray-500 font-medium">Mascotas</div>
@@ -39,6 +39,14 @@ const CollectionScreen = () => {
                     <div className="text-xs text-gray-500 font-medium">Arcoíris</div>
                 </div>
                 <div className="bg-white/70 rounded-2xl p-3 text-center shadow">
+                    <div className="text-2xl font-bold text-yellow-500">🌟 {stats.starCount || 0}</div>
+                    <div className="text-xs text-gray-500 font-medium">Estrellas</div>
+                </div>
+                <div className="bg-white/70 rounded-2xl p-3 text-center shadow">
+                    <div className="text-2xl font-bold text-cyan-500">💎 {stats.gemCount || 0}</div>
+                    <div className="text-xs text-gray-500 font-medium">Gemas</div>
+                </div>
+                <div className="bg-white/70 rounded-2xl p-3 text-center shadow">
                     <div className="text-2xl font-bold text-red-500 flex items-center justify-center gap-1">
                         <Flame className="w-5 h-5" /> {stats.consecutiveDays}
                     </div>
@@ -46,7 +54,7 @@ const CollectionScreen = () => {
                 </div>
                 <div className="bg-white/70 rounded-2xl p-3 text-center shadow">
                     <div className="text-2xl font-bold text-teal-500">{stats.totalCorrect}</div>
-                    <div className="text-xs text-gray-500 font-medium">Total correctas</div>
+                    <div className="text-xs text-gray-500 font-medium">Totales</div>
                 </div>
             </div>
 
