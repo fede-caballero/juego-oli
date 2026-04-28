@@ -35,7 +35,7 @@ export const GameProvider = ({ children }) => {
 
         // Syllables progression check
         if (section === 'syllables' && currentLevelIndex === 0) {
-            if (score < 10) {
+            if (score < 15) {
                 // Logic to show feedback could go here, or just return
                 return;
             }

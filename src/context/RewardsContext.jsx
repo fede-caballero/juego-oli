@@ -185,10 +185,6 @@ export const RewardsProvider = ({ children, userId, onLogout }) => {
                 case 'numbers':
                     if (mode === 'random') {
                         newStats.numbersRandomCorrect += 1;
-                        // Check rainbow milestone
-                        if (newStats.numbersRandomCorrect % RAINBOW_MILESTONE === 0) {
-                            newStats.rainbowCount += 1;
-                        }
                     } else {
                         newStats.numbersSequentialCorrect += 1;
                     }
@@ -249,25 +245,19 @@ export const RewardsProvider = ({ children, userId, onLogout }) => {
         });
     }, []);
 
-    // Check rainbow milestone notification
-    const checkRainbow = useCallback(() => {
-        setStats(prev => {
-            if (prev.numbersRandomCorrect > 0 && prev.numbersRandomCorrect % RAINBOW_MILESTONE === 0) {
-                setTimeout(() => setNewRainbow(true), 500);
-            }
-            return prev;
-        });
-    }, []);
-
-    const checkStarMilestone = useCallback((section) => {
+    // Award prizes explicitly based on session milestones
+    const awardPrize = useCallback((prizeType) => {
         setStats(prev => {
             const newStats = { ...prev };
-            if (section === 'syllables' && prev.syllablesCorrect > 0 && prev.syllablesCorrect % STAR_MILESTONE === 0) {
+            if (prizeType === 'star') {
                 newStats.starCount += 1;
                 setTimeout(() => setNewStarPopup({ section: 'syllables', count: newStats.starCount }), 500);
-            } else if (section === 'words' && prev.wordsCorrect > 0 && prev.wordsCorrect % STAR_MILESTONE === 0) {
+            } else if (prizeType === 'gem') {
                 newStats.gemCount += 1;
                 setTimeout(() => setNewStarPopup({ section: 'words', count: newStats.gemCount }), 500);
+            } else if (prizeType === 'rainbow') {
+                newStats.rainbowCount += 1;
+                setTimeout(() => setNewRainbow(true), 500);
             }
             return newStats;
         });
@@ -312,8 +302,7 @@ export const RewardsProvider = ({ children, userId, onLogout }) => {
             completeSequential,
             registerPlayDay,
             checkUnlocks,
-            checkRainbow,
-            checkStarMilestone,
+            awardPrize,
             dismissUnlock,
             dismissRainbow,
             dismissStarPopup,

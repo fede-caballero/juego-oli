@@ -19,7 +19,7 @@ import { STAR_MILESTONE } from '../data/rewards';
 const GameCanvas = () => {
     const { section, score, gameMode, currentLevel, nextLevel, resetGame } = useGame();
     const { 
-        addCorrect, addIncorrect, checkUnlocks, checkStarMilestone, 
+        addCorrect, addIncorrect, checkUnlocks, awardPrize, 
         newlyUnlocked, dismissUnlock, newStarPopup, dismissStarPopup 
     } = useRewards();
     const [showExitConfirm, setShowExitConfirm] = useState(false);
@@ -29,11 +29,8 @@ const GameCanvas = () => {
     useEffect(() => {
         if (score > 0) {
             checkUnlocks();
-            if (section === 'words' || section === 'syllables') {
-                checkStarMilestone(section);
-            }
         }
-    }, [score, checkUnlocks, section, checkStarMilestone]);
+    }, [score, checkUnlocks]);
 
     // Hooks for Syllable/Alphabet/Word games (must be before early returns)
     const { currentSyllable, options, feedback, checkAnswer } = useGameLogic();
@@ -110,7 +107,7 @@ const GameCanvas = () => {
             
             // Prevent '¡Muy bien!' from overlapping with level up or completion sounds
             const newScore = score + 1;
-            const isLevelUp = (section === 'syllables' && currentLevel === 'level1' && newScore >= 10);
+            const isLevelUp = (section === 'syllables' && currentLevel === 'level1' && newScore >= 15);
             const isAlphabetComplete = (section === 'alphabet' && newScore >= 27);
             const isLevelComplete = isLevelUp || isAlphabetComplete;
             
@@ -121,6 +118,9 @@ const GameCanvas = () => {
                     speak('¡Muy bien!');
                 }
                 addCorrect(section);
+                if (newScore > 0 && newScore % STAR_MILESTONE === 0) {
+                    awardPrize(section === 'syllables' ? 'star' : 'gem');
+                }
             } else {
                 speak('¡Intentá nuevamente!');
                 addIncorrect();
