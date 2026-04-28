@@ -7,6 +7,7 @@ import ConfirmDialog from './ConfirmDialog';
 import RainbowPopup from './RainbowPopup';
 import { speak } from './AudioFeedback';
 import { numberToSpanish, getRandomNumber, DEFAULT_MAX_NUMBER } from '../data/numbers';
+import { RAINBOW_MILESTONE } from '../data/rewards';
 import Confetti from 'react-confetti';
 import { Volume2, Star, ArrowLeft, Shuffle, ListOrdered, Settings2 } from 'lucide-react';
 
@@ -200,6 +201,7 @@ const NumberGame = () => {
             {/* Exit confirmation */}
             <ConfirmDialog
                 isOpen={showExitConfirm}
+                message={score >= RAINBOW_MILESTONE ? "¿Querés salir? Tus premios están guardados en Colecciones." : "Si salís, vas a perder el avance de esta partida."}
                 onConfirm={() => {
                     setShowExitConfirm(false);
                     resetGame('menu');

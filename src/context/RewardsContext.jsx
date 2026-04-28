@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
-import { MASCOTS, DEFAULT_STATS, RAINBOW_MILESTONE } from '../data/rewards';
+import { MASCOTS, DEFAULT_STATS, RAINBOW_MILESTONE, STAR_MILESTONE } from '../data/rewards';
 import { loadProgress, saveProgress } from '../services/api';
 
 const RewardsContext = createContext();
@@ -262,10 +262,10 @@ export const RewardsProvider = ({ children, userId, onLogout }) => {
     const checkStarMilestone = useCallback((section) => {
         setStats(prev => {
             const newStats = { ...prev };
-            if (section === 'syllables' && prev.syllablesCorrect > 0 && prev.syllablesCorrect % 10 === 0) {
+            if (section === 'syllables' && prev.syllablesCorrect > 0 && prev.syllablesCorrect % STAR_MILESTONE === 0) {
                 newStats.starCount += 1;
                 setTimeout(() => setNewStarPopup({ section: 'syllables', count: newStats.starCount }), 500);
-            } else if (section === 'words' && prev.wordsCorrect > 0 && prev.wordsCorrect % 10 === 0) {
+            } else if (section === 'words' && prev.wordsCorrect > 0 && prev.wordsCorrect % STAR_MILESTONE === 0) {
                 newStats.gemCount += 1;
                 setTimeout(() => setNewStarPopup({ section: 'words', count: newStats.gemCount }), 500);
             }

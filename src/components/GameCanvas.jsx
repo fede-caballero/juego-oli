@@ -14,6 +14,7 @@ import Confetti from 'react-confetti';
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
 import { Volume2, Star, ArrowLeft } from 'lucide-react';
 import StarPopup from './StarPopup';
+import { STAR_MILESTONE } from '../data/rewards';
 
 const GameCanvas = () => {
     const { section, score, gameMode, currentLevel, nextLevel, resetGame } = useGame();
@@ -158,6 +159,7 @@ const GameCanvas = () => {
             {/* Exit confirmation */}
             <ConfirmDialog
                 isOpen={showExitConfirm}
+                message={score >= STAR_MILESTONE ? "¿Querés salir? Tus premios están guardados en Colecciones." : "Si salís, vas a perder el avance de esta partida."}
                 onConfirm={() => {
                     setShowExitConfirm(false);
                     resetGame('menu');

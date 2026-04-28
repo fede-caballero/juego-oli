@@ -138,9 +138,9 @@ export const getStreakTier = (days) => {
     return tier;
 };
 
-// Rainbow rewards: earned every 30 points in random number mode
-export const RAINBOW_MILESTONE = 30;
-export const STAR_MILESTONE = 10; // For syllables (stars) and words (gems)
+// Rainbow rewards: earned every 15 points in random number mode
+export const RAINBOW_MILESTONE = 15;
+export const STAR_MILESTONE = 15; // For syllables (stars) and words (gems)
 
 // Default stats shape
 export const DEFAULT_STATS = {
