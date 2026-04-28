@@ -52,14 +52,16 @@ export const useGameLogic = () => {
         generateNewRound();
     }, [generateNewRound]);
 
-    const checkAnswer = (answer) => {
+    const checkAnswer = (answer, isLevelComplete = false) => {
         if (answer === currentSyllable) {
             setFeedback('correct');
             addScore(1);
             if (section === 'alphabet' && alphabetMode === 'ordered') {
                 alphabetIndexRef.current += 1;
             }
-            setTimeout(generateNewRound, 1500); // Wait for animation
+            if (!isLevelComplete) {
+                setTimeout(generateNewRound, 1500); // Wait for animation
+            }
             return true;
         } else {
             setFeedback('incorrect');
